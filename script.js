@@ -1,5 +1,5 @@
 // Initialize Ably
-const ably = new Ably.Realtime('your_api_key_here');
+const ably = new Ably.Realtime('Aj5RCA.lkSclA:JY7AdllhPQkqoWqgyuxqUA3KeUBA_4ZkQhC8jJnuPYY');
 const channel = ably.channels.get('chat');
 
 // DOM Elements
