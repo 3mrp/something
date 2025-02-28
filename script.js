@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const Ably = require('ably');
-    const ably = new Ably.Realtime('YOUR_API_KEY');
+    const ably = new Ably.Realtime('Aj5RCA.lkSclA:JY7AdllhPQkqoWqgyuxqUA3KeUBA_4ZkQhC8jJnuPYY');
     const channel = ably.channels.get('chat-room');
 
     const messagesDiv = document.getElementById('messages');
