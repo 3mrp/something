@@ -3,50 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ably Chat Room</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        #chat {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        #messages {
-            height: 300px;
-            overflow-y: scroll;
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        #messageInput {
-            width: calc(100% - 22px);
-            padding: 10px;
-        }
-        #sendButton {
-            display: inline-block;
-            padding: 10px 20px;
-            margin-left: 10px;
-            cursor: pointer;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-        }
-    </style>
+    <title>chat thing</title>
 </head>
 <body>
-    <div id="chat">
-        <div id="messages"></div>
-        <input type="text" id="messageInput" placeholder="Type a message...">
-        <button id="sendButton">Send</button>
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ably/1.2.35/ably.min.js"></script>
+    <h1>test</h1>
+    <div id="chat"></div>
+    <input type="text" id="messageInput" placeholder="Type a message">
+    <button id="sendButton">Send</button>
+
+    <script src="ably.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
