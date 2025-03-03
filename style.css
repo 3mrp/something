@@ -1,10 +1,10 @@
 /* General Styles */
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Roboto', sans-serif;
   margin: 0;
   padding: 0;
-  background: linear-gradient(135deg, #74ebd5, #acb6e5);
-  color: #333;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: #fff;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -19,11 +19,11 @@ body {
   max-width: 600px;
   height: 60vh;
   margin: 20px auto;
-  border: 1px solid #ccc;
+  border: none;
   border-radius: 15px;
   padding: 15px;
-  background: #fff;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
   overflow-y: scroll;
   overflow-x: hidden;
   font-size: 16px;
@@ -33,17 +33,18 @@ body {
 #chatBox p {
   margin: 10px 0;
   padding: 10px 15px;
-  border-radius: 20px;
-  background-color: #e3f2fd;
-  color: #333;
-  max-width: 80%;
+  border-radius: 15px;
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  max-width: 70%;
   word-wrap: break-word;
-  box-shadow: 0px 3px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(5px);
 }
 
-/* Differentiate user messages */
+/* Align user's own messages */
 #chatBox .myMessage {
-  background: #bbdefb;
+  background: rgba(30, 60, 114, 0.9);
   margin-left: auto;
   text-align: right;
 }
@@ -53,40 +54,50 @@ body {
   width: 8px;
 }
 #chatBox::-webkit-scrollbar-thumb {
-  background-color: #90caf9;
+  background-color: rgba(255, 255, 255, 0.5);
   border-radius: 4px;
 }
 
-/* Message Input and Button Styles */
+/* Input Area */
 #messageInput {
-  width: 70%;
+  width: 65%;
   max-width: 400px;
-  padding: 10px;
-  margin: 15px 5px;
-  border: 1px solid #ccc;
+  padding: 15px;
+  margin: 10px 5px;
+  border: none;
   border-radius: 20px;
   font-size: 14px;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #333;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-#sendBtn {
-  background: #1976d2;
-  color: white;
+/* Buttons */
+#sendBtn, #clearBtn {
+  background: rgba(255, 255, 255, 0.8);
+  color: #333;
   padding: 12px 20px;
   border: none;
   border-radius: 20px;
   cursor: pointer;
   font-size: 14px;
-  transition: transform 0.3s, background 0.3s;
+  margin: 5px;
+  transition: all 0.3s ease;
 }
 
 #sendBtn:hover {
-  background: #1565c0;
+  background: #3c6382;
+  color: #fff;
+  transform: scale(1.1);
+}
+
+#clearBtn:hover {
+  background: #e55039;
+  color: #fff;
   transform: scale(1.1);
 }
 
 /* Username styling */
 #chatBox p strong {
-  font-weight: 600;
-  color: #1976d2;
+  font-weight: bold;
+  color: #ffda79;
 }
