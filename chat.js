@@ -1,55 +1,84 @@
-// Initialize Ably with your API key
+// initialize ably with your api key
 const ably = new Ably.Realtime.Promise("Aj5RCA.lkSclA:JY7AdllhPQkqoWqgyuxqUA3KeUBA_4ZkQhC8jJnuPYY");
 
-// Connect to a channel
+// connect to a channel
 const channel = ably.channels.get("chat-channel");
 
-// DOM Elements
+// dom elements
 const chatBox = document.getElementById("chatBox");
 const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
-let username = ""; // Store the user's username
+const clearBtn = document.getElementById("clearBtn");
+let username = "";
 
-// Prompt for username
+// prompt for username
 while (!username) {
-  username = prompt("Enter your username:").trim();
+  username = prompt("enter your username :3").trim();
 }
-alert(`Welcome, ${username}!`);
+alert(`welcome, ${username}! let’s chat :3`);
 
-// Verify connection to Ably
+// load previous chats from local storage
+const loadChats = () => {
+  const savedChats = JSON.parse(localStorage.getItem("chatHistory")) || [];
+  savedChats.forEach((message) => {
+    const messageElement = document.createElement("p");
+    messageElement.innerHTML = `<strong>${message.username}</strong>: ${message.text} :3`;
+    chatBox.appendChild(messageElement);
+  });
+  chatBox.scrollTop = chatBox.scrollHeight; // auto-scroll to bottom
+};
+loadChats();
+
+// save message to local storage
+const saveChatToLocal = (username, text) => {
+  const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+  chatHistory.push({ username, text: `${text} :3` });
+  localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+};
+
+// verify connection to ably
 ably.connection.on('connected', () => {
-  console.log("Connected to Ably!");
+  console.log("connected to ably! :3");
 });
 
 ably.connection.on('failed', (err) => {
-  console.error("Failed to connect to Ably:", err);
-  alert("Could not connect to the messaging service. Please check your API key and try again.");
+  console.error("failed to connect to ably :3", err);
+  alert("could not connect to the messaging service. please check your api key and try again. :3");
 });
 
-// Listen for messages
+// listen for messages
 channel.subscribe("message", (message) => {
   const messageElement = document.createElement("p");
   messageElement.innerHTML = `<strong>${message.data.username}</strong>: ${message.data.text}`;
   chatBox.appendChild(messageElement);
-  chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to bottom
-  console.log("received message:", message.data);
+  saveChatToLocal(message.data.username, message.data.text);
+  chatBox.scrollTop = chatBox.scrollHeight; // auto-scroll to bottom
+  console.log("received message: :3", message.data);
 });
 
-// Send messages
+// send messages
 sendBtn.addEventListener("click", () => {
   const text = messageInput.value.trim();
   if (text) {
-    const message = { username, text }; // Include the username with the message
+    const message = { username, text: `${text} :3` }; // append :3 to every message
     channel.publish("message", message, (err) => {
       if (err) {
-        console.error("failed to send message:", err);
-        alert("failed to send message. try again. idiot smh");
+        console.error("failed to send message :3", err);
+        alert("failed to send message. try again. :3");
       } else {
-        console.log("message sent:", message);
+        console.log("message sent :3", message);
+        saveChatToLocal(username, text);
       }
     });
-    messageInput.value = ""; // Clear input after sending
+    messageInput.value = ""; // clear input after sending
   } else {
-    alert("type a message before sending gang");
+    alert("please type a message before sending! :3");
   }
+});
+
+// clear chat history
+clearBtn.addEventListener("click", () => {
+  localStorage.removeItem("chatHistory");
+  chatBox.innerHTML = ""; // clear chat box
+  alert("chat history cleared! :3");
 });
