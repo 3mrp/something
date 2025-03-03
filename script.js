@@ -1,39 +1,25 @@
-// Initialize the Ably Realtime connection
-const ably = new Ably.Realtime("Aj5RCA.eFB3YA:VbGyxs0o72pEszMGqx9cA8wZBUaFHry8CXQ0D3bXxfQ");
+// Replace with your Ably API key
+const ably = new Ably.Realtime.Promise("Aj5RCA.lkSclA:JY7AdllhPQkqoWqgyuxqUA3KeUBA_4ZkQhC8jJnuPYY");
+const channel = ably.channels.get("chat-channel");
 
-// Get the channel to send/receive messages
-const channel = ably.channels.get("chat-room");
-
-// DOM elements
-const messagesDiv = document.getElementById("messages");
+// DOM Elements
+const chatBox = document.getElementById("chatBox");
 const messageInput = document.getElementById("messageInput");
-const sendButton = document.getElementById("sendButton");
+const sendBtn = document.getElementById("sendBtn");
 
-// Function to display messages in the chat window
-function displayMessage(content, sender) {
-    const messageElement = document.createElement("div");
-    messageElement.textContent = `${sender}: ${content}`;
-    messagesDiv.appendChild(messageElement);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight; // Auto-scroll to the latest message
-}
-
-// Handle sending messages
-sendButton.addEventListener("click", () => {
-    const message = messageInput.value.trim();
-    if (message) {
-        // Publish the message to Ably
-        channel.publish("chat-message", message, (err) => {
-            if (err) {
-                console.error("Failed to send message:", err);
-            } else {
-                displayMessage(message, "You"); // Show the message locally
-            }
-        });
-        messageInput.value = ""; // Clear input field
-    }
+// Listen for incoming messages
+channel.subscribe("message", (message) => {
+  const messageElement = document.createElement("p");
+  messageElement.textContent = message.data;
+  chatBox.appendChild(messageElement);
+  chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
 });
 
-// Handle receiving messages
-channel.subscribe("chat-message", (msg) => {
-    displayMessage(msg.data, "Friend"); // Show the incoming message
+// Send messages
+sendBtn.addEventListener("click", () => {
+  const message = messageInput.value.trim();
+  if (message) {
+    channel.publish("message", message);
+    messageInput.value = ""; // Clear the input field
+  }
 });
