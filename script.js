@@ -1,33 +1,33 @@
-// Initialize the Ably Realtime connection
-const ably = new Ably.Realtime("Aj5RCA.CygHdA:ygSN2m0iIHyUlwoZBKmpENRPoarL-HcYq-MzyAmeMXo");
+// Initialize the Ably Realtime connection with the given API key
+const ably = new Ably.Realtime("Aj5RCA.eFB3YA:VbGyxs0o72pEszMGqx9cA8wZBUaFHry8CXQ0D3bXxfQ");
 
-// Get a channel to send/receive messages
+// Get the channel to send and receive messages
 const channel = ably.channels.get("chat-room");
 
-// DOM elements
+// Get DOM elements
 const messagesDiv = document.getElementById("messages");
 const messageInput = document.getElementById("messageInput");
 const sendButton = document.getElementById("sendButton");
 
-// Helper function to display messages
-function displayMessage(message) {
-    const newMessage = document.createElement("div");
-    newMessage.textContent = message;
-    messagesDiv.appendChild(newMessage);
+// Function to display a message
+function displayMessage(content, sender) {
+    const messageElement = document.createElement("div");
+    messageElement.textContent = `${sender}: ${content}`;
+    messagesDiv.appendChild(messageElement);
     messagesDiv.scrollTop = messagesDiv.scrollHeight; // Auto-scroll to the latest message
 }
 
-// Publish a message when the send button is clicked
+// Event listener for sending messages
 sendButton.addEventListener("click", () => {
     const message = messageInput.value.trim();
     if (message) {
-        channel.publish("chat-message", message); // Send the message to the Ably channel
-        messageInput.value = ""; // Clear the input field
-        displayMessage(`You: ${message}`); // Show your message immediately
+        channel.publish("chat-message", message); // Send to Ably
+        displayMessage(message, "You"); // Display your message locally
+        messageInput.value = ""; // Clear input field
     }
 });
 
-// Subscribe to messages on the channel
+// Subscribe to incoming messages
 channel.subscribe("chat-message", (msg) => {
-    displayMessage(`Friend: ${msg.data}`); // Display the received message
+    displayMessage(msg.data, "Friend"); // Display received message
 });
