@@ -22,7 +22,7 @@ const loadChats = () => {
   const savedChats = JSON.parse(localStorage.getItem("chatHistory")) || [];
   savedChats.forEach((message) => {
     const messageElement = document.createElement("p");
-    messageElement.innerHTML = `<strong>${message.username}</strong>: ${message.text} :3`;
+    messageElement.innerHTML = `<strong>${message.username}</strong>: ${message.text} `;
     chatBox.appendChild(messageElement);
   });
   chatBox.scrollTop = chatBox.scrollHeight; // auto-scroll to bottom
@@ -32,7 +32,7 @@ loadChats();
 // save message to local storage
 const saveChatToLocal = (username, text) => {
   const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
-  chatHistory.push({ username, text: `${text} :3` });
+  chatHistory.push({ username, text: `${text} ` });
   localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
 };
 
