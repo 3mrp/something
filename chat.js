@@ -22,7 +22,7 @@ const loadChats = () => {
   const savedChats = JSON.parse(localStorage.getItem("chatHistory")) || [];
   savedChats.forEach((message) => {
     const messageElement = document.createElement("p");
-    messageElement.innerHTML = `<strong>${message.username}</strong>: ${message.text} `;
+    messageElement.innerHTML = `<strong>${message.username}</strong>: ${message.text}`;
     chatBox.appendChild(messageElement);
   });
   chatBox.scrollTop = chatBox.scrollHeight; // auto-scroll to bottom
@@ -32,7 +32,7 @@ loadChats();
 // save message to local storage
 const saveChatToLocal = (username, text) => {
   const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
-  chatHistory.push({ username, text: `${text} ` });
+  chatHistory.push({ username, text });
   localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
 };
 
@@ -60,7 +60,7 @@ channel.subscribe("message", (message) => {
 sendBtn.addEventListener("click", () => {
   const text = messageInput.value.trim();
   if (text) {
-    const message = { username, text: `${text} ` }; 
+    const message = { username, text }; // only the message text, no :3
     channel.publish("message", message, (err) => {
       if (err) {
         console.error("failed to send message :3", err);
@@ -70,7 +70,7 @@ sendBtn.addEventListener("click", () => {
         saveChatToLocal(username, text);
       }
     });
-    messageInput.value = ""; 
+    messageInput.value = ""; // clear input after sending
   } else {
     alert("please type a message before sending! :3");
   }
@@ -79,6 +79,6 @@ sendBtn.addEventListener("click", () => {
 // clear chat history
 clearBtn.addEventListener("click", () => {
   localStorage.removeItem("chatHistory");
-  chatBox.innerHTML = ""; 
+  chatBox.innerHTML = ""; // clear chat box
   alert("chat history cleared! :3");
 });
