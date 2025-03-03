@@ -19,6 +19,6 @@ sendBtn.addEventListener("click", () => {
   const message = messageInput.value.trim();
   if (message) {
     channel.publish("message", message);
-    messageInput.value = "idk what allat is"; // something
+    messageInput.value = ""; // something
   }
 });
