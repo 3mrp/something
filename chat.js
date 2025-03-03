@@ -60,7 +60,7 @@ channel.subscribe("message", (message) => {
 sendBtn.addEventListener("click", () => {
   const text = messageInput.value.trim();
   if (text) {
-    const message = { username, text: `${text} :3` }; // append :3 to every message
+    const message = { username, text: `${text} ` }; 
     channel.publish("message", message, (err) => {
       if (err) {
         console.error("failed to send message :3", err);
@@ -70,7 +70,7 @@ sendBtn.addEventListener("click", () => {
         saveChatToLocal(username, text);
       }
     });
-    messageInput.value = ""; // clear input after sending
+    messageInput.value = ""; 
   } else {
     alert("please type a message before sending! :3");
   }
@@ -79,6 +79,6 @@ sendBtn.addEventListener("click", () => {
 // clear chat history
 clearBtn.addEventListener("click", () => {
   localStorage.removeItem("chatHistory");
-  chatBox.innerHTML = ""; // clear chat box
+  chatBox.innerHTML = ""; 
   alert("chat history cleared! :3");
 });
