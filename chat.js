@@ -40,11 +40,11 @@ const saveChatToLocal = (username, text) => {
   localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
 };
 
-ably.connection.on('connected', () => {
+ably.connection.on("connected", () => {
   console.log("connected to ably! :3");
 });
 
-ably.connection.on('failed', (err) => {
+ably.connection.on("failed", (err) => {
   console.error("failed to connect to ably :3", err);
   alert("could not connect to the messaging service. please check your api key and try again. :3");
 });
