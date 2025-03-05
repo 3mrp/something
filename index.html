@@ -3,15 +3,32 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>chat test</title>
+  <title>chat with friends :3</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="chatBox"></div>
-  <input type="text" id="messageInput" placeholder="type your message here :3">
-  <button id="sendBtn">send</button>
-  <button id="clearBtn">clear chat</button>
-  
+  <header>
+    <h1>chat with friends</h1>
+    <p>a violent place to connect and share thoughts</p>
+  </header>
+
+  <main>
+    <div id="chatContainer">
+      <div id="chatBox"></div>
+      <div id="inputArea">
+        <input type="text" id="messageInput" placeholder="type your message here">
+        <div id="buttonGroup">
+          <button id="sendBtn">send</button>
+          <button id="clearBtn">clear chat</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 - created with HATRED</p>
+  </footer>
+
   <script src="https://cdn.jsdelivr.net/npm/ably/browser/static/ably.min.js"></script>
   <script src="chat.js"></script>
 </body>
