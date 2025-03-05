@@ -1,17 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>chat  </title>
+  <title>chat</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="chatBox"></div>
-  <input type="text" id="messageInput" placeholder="type your message here  ">
-  <button id="sendBtn">send</button>
-  <button id="clearBtn">clear chat</button>
-  <script src="https://cdn.jsdelivr.net/npm/ably/browser/static/ably.min.js"></script>
+  <header>
+    <h1>chat</h1>
+    <p>a VIOLENT place to connect and share thoughts</p>
+  </header>
+
+  <!-- Channel List -->
+  <aside class="channel-list">
+    <h3>Channels</h3>
+    <ul id="channelList">
+      <li data-channel="general" class="active">#general</li>
+      <li data-channel="random">#random</li>
+      <li data-channel="spam">#spam</li>
+    </ul>
+  </aside>
+
+  <!-- Chat Display Section -->
+  <main>
+    <div id="chatBox" class="chat-box"></div>
+  </main>
+
+  <!-- Input Section -->
+  <section class="chat-input-container">
+    <input type="text" id="messageInput" placeholder="type your message here">
+    <button id="sendBtn">send</button>
+    <button id="clearBtn">clear chat</button>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 - created with HATRED</p>
+  </footer>
+
   <script src="chat.js"></script>
 </body>
 </html>
