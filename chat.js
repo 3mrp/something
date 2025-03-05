@@ -1,6 +1,6 @@
 const ably = new Ably.Realtime.Promise("Aj5RCA.lkSclA:JY7AdllhPQkqoWqgyuxqUA3KeUBA_4ZkQhC8jJnuPYY");
 
-// Set the default channel ("general")
+// Set default channel to "general"
 let currentChannelName = "general";
 let channel = ably.channels.get(currentChannelName);
 
@@ -9,7 +9,7 @@ const chatBox = document.getElementById("chatBox");
 const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
 const clearBtn = document.getElementById("clearBtn");
-const channelList = document.getElementById("channelList");
+const channelButtons = document.querySelectorAll(".channel-button");
 
 let username = "";
 while (!username) {
@@ -17,34 +17,34 @@ while (!username) {
 }
 alert(`Welcome, ${username}! Let's chat`);
 
-// Use a Set to avoid duplicate messages in the UI
+// Message tracker to prevent duplicates
 let messageTracker = new Set();
 
 // Function to add a message to the UI and auto-scroll
 function addMessageToUI(username, text) {
   const uniqueKey = `${username}-${text}`;
   if (messageTracker.has(uniqueKey)) return;
-  const p = document.createElement("p");
-  p.innerHTML = `<strong>${username}</strong>: ${text}`;
-  chatBox.appendChild(p);
-  chatBox.scrollTop = chatBox.scrollHeight;
+  const messageElement = document.createElement("p");
+  messageElement.innerHTML = `<strong>${username}</strong>: ${text}`;
+  chatBox.appendChild(messageElement);
+  chatBox.scrollTop = chatBox.scrollHeight; // Autoscroll to the bottom
   messageTracker.add(uniqueKey);
 }
 
-// Function to load saved messages for a given channel
+// Load messages for the current channel from localStorage
 function loadChats(channelName) {
-  const saved = JSON.parse(localStorage.getItem(`${channelName}-chatHistory`)) || [];
-  saved.forEach(({ username, text }) => addMessageToUI(username, text));
+  const savedChats = JSON.parse(localStorage.getItem(`${channelName}-chatHistory`)) || [];
+  savedChats.forEach(({ username, text }) => addMessageToUI(username, text));
 }
 
-// Function to save a message to localStorage for a given channel
+// Save a message to localStorage for the current channel
 function saveChatToLocal(channelName, username, text) {
-  const saved = JSON.parse(localStorage.getItem(`${channelName}-chatHistory`)) || [];
-  saved.push({ username, text });
-  localStorage.setItem(`${channelName}-chatHistory`, JSON.stringify(saved));
+  const savedChats = JSON.parse(localStorage.getItem(`${channelName}-chatHistory`)) || [];
+  savedChats.push({ username, text });
+  localStorage.setItem(`${channelName}-chatHistory`, JSON.stringify(savedChats));
 }
 
-// Subscribe to messages on the current channel
+// Subscribe to a channel
 function subscribeToChannel() {
   channel.subscribe("message", (message) => {
     addMessageToUI(message.data.username, message.data.text);
@@ -52,67 +52,74 @@ function subscribeToChannel() {
   });
 }
 
-// Switch channels: unsubscribe, clear UI, load new messages, subscribe new channel
+// Switch to a new channel
 function switchChannel(newChannelName) {
   if (newChannelName === currentChannelName) return;
+  
+  // Unsubscribe from the current channel
   channel.unsubscribe();
+  // Clear the chatbox and message tracker
   chatBox.innerHTML = "";
   messageTracker.clear();
+  // Update the current channel
   currentChannelName = newChannelName;
   channel = ably.channels.get(currentChannelName);
+  // Load saved chats for the new channel and subscribe
   loadChats(currentChannelName);
   subscribeToChannel();
   console.log(`Switched to channel: ${currentChannelName}`);
 }
 
-// Ably connection status
-ably.connection.on("connected", () => {
-  console.log("Connected to Ably!");
-});
-ably.connection.on("failed", (err) => {
-  console.error("Failed to connect to Ably", err);
-  alert("Could not connect to the messaging service. Please check your API key.");
+// Handle channel button clicks
+channelButtons.forEach(button => {
+  button.addEventListener("click", () => {
+    // Update active button styling
+    channelButtons.forEach(btn => btn.classList.remove("active"));
+    button.classList.add("active");
+
+    const newChannelName = button.getAttribute("data-channel");
+    switchChannel(newChannelName);
+  });
 });
 
-// Load chat history for the default channel and subscribe
+// Initial setup: Load chats and subscribe to the default channel
 loadChats(currentChannelName);
 subscribeToChannel();
 
-// Sending a message
+// Ably connection event handlers
+ably.connection.on("connected", () => {
+  console.log("Connected to Ably!");
+});
+
+ably.connection.on("failed", (err) => {
+  console.error("Failed to connect to Ably:", err);
+  alert("Could not connect to the messaging service. Please check your API key.");
+});
+
+// Send a message
 sendBtn.addEventListener("click", () => {
   const text = messageInput.value.trim();
   if (text) {
-    const msg = { username, text };
-    channel.publish("message", msg, (err) => {
+    const message = { username, text };
+    channel.publish("message", message, (err) => {
       if (err) {
-        console.error("Failed to send message", err);
+        console.error("Failed to send message:", err);
         alert("Failed to send message. Try again.");
       } else {
         saveChatToLocal(currentChannelName, username, text);
         addMessageToUI(username, text);
       }
     });
-    messageInput.value = "";
+    messageInput.value = ""; // Clear the input field
   } else {
     alert("Please type a message before sending!");
   }
 });
 
-// Clearing chat history for the current channel
+// Clear chat history for the current channel
 clearBtn.addEventListener("click", () => {
   localStorage.removeItem(`${currentChannelName}-chatHistory`);
   chatBox.innerHTML = "";
   messageTracker.clear();
   alert("Chat history cleared!");
-});
-
-// Handle channel switching from the channel list
-channelList.addEventListener("click", (event) => {
-  if (event.target.tagName === "LI") {
-    // Update active channel styling
-    document.querySelectorAll("#channelList li").forEach(li => li.classList.remove("active"));
-    event.target.classList.add("active");
-    const newChannel = event.target.getAttribute("data-channel");
-    switchChannel(newChannel);
-  }
 });
