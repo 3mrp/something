@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>chat test</title>
+  <title>chat test v78</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <!-- Channel List Sidebar -->
-    <aside id="channelList">
-      <ul>
-        <li data-channel="general" class="active"># general</li>
-        <li data-channel="random"># random</li>
-        <li data-channel="spam"># spam</li>
-      </ul>
+    <!-- Sidebar: Channel chooser -->
+    <aside id="channelSidebar">
+      <h2>Channels</h2>
+      <button class="channel-button active" data-channel="general"># general</button>
+      <button class="channel-button" data-channel="random"># random</button>
+      <button class="channel-button" data-channel="spam"># spam</button>
     </aside>
 
     <!-- Chat Area -->
@@ -27,7 +26,7 @@
       </div>
     </section>
   </div>
-  
+
   <script src="https://cdn.jsdelivr.net/npm/ably/browser/static/ably.min.js"></script>
   <script src="chat.js"></script>
 </body>
