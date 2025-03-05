@@ -7,24 +7,27 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- tryin to do something like discor -->
-  <div id="channelList">
-    <ul>
-      <li data-channel="general" class="active"># general</li>
-      <li data-channel="random"># random</li>
-      <li data-channel="spam"># spam</li>
-    </ul>
+  <div class="container">
+    <!-- Channel List Sidebar -->
+    <aside id="channelList">
+      <ul>
+        <li data-channel="general" class="active"># general</li>
+        <li data-channel="random"># random</li>
+        <li data-channel="spam"># spam</li>
+      </ul>
+    </aside>
+
+    <!-- Chat Area -->
+    <section id="chatSection">
+      <div id="chatBox"></div>
+      <div class="chat-input-container">
+        <input type="text" id="messageInput" placeholder="type your message here">
+        <button id="sendBtn">send</button>
+        <button id="clearBtn">clear chat</button>
+      </div>
+    </section>
   </div>
   
- 
-  <div id="chatBox"></div>
-  
-
-  <input type="text" id="messageInput" placeholder="type your message here :3">
-  <button id="sendBtn">send</button>
-  <button id="clearBtn">clear chat</button>
-  
-  <!-- external scripts -->
   <script src="https://cdn.jsdelivr.net/npm/ably/browser/static/ably.min.js"></script>
   <script src="chat.js"></script>
 </body>
