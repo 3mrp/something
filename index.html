@@ -7,28 +7,24 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>chat with friends</h1>
-    <p>a violent place to connect and share thoughts</p>
-  </header>
+  <!-- tryin to do something like discor -->
+  <div id="channelList">
+    <ul>
+      <li data-channel="general" class="active"># general</li>
+      <li data-channel="random"># random</li>
+      <li data-channel="spam"># spam</li>
+    </ul>
+  </div>
+  
+ 
+  <div id="chatBox"></div>
+  
 
-  <main>
-    <div id="chatContainer">
-      <div id="chatBox"></div>
-      <div id="inputArea">
-        <input type="text" id="messageInput" placeholder="type your message here">
-        <div id="buttonGroup">
-          <button id="sendBtn">send</button>
-          <button id="clearBtn">clear chat</button>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <footer>
-    <p>&copy; 2025 - created with HATRED</p>
-  </footer>
-
+  <input type="text" id="messageInput" placeholder="type your message here :3">
+  <button id="sendBtn">send</button>
+  <button id="clearBtn">clear chat</button>
+  
+  <!-- external scripts -->
   <script src="https://cdn.jsdelivr.net/npm/ably/browser/static/ably.min.js"></script>
   <script src="chat.js"></script>
 </body>
