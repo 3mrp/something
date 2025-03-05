@@ -1,4 +1,4 @@
-/* Import Google Font for a modern look */
+/* Import Google Font */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
 /* Reset */
@@ -11,43 +11,55 @@
 /* Base styling */
 html, body {
   height: 100%;
-  overflow-x: hidden;
   font-family: 'Roboto', sans-serif;
-  background: #36393F; /* Discord dark background */
+  background: #36393F; /* Discord-like dark background */
   color: #fff;
+  overflow-x: hidden;
 }
 
-/* Container for sidebar and chat section */
+/* Flexbox container for sidebar and chat */
 .container {
   display: flex;
   height: 100%;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
-/* Channel List Sidebar */
-#channelList {
-  background: #2F3136;
-  width: 200px;
+/* Sidebar (Channel chooser) */
+#channelSidebar {
+  width: 250px;
+  background: #2F3136; /* Sidebar background */
   padding: 20px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-right: 1px solid #202225;
 }
 
-#channelList ul {
-  list-style: none;
+#channelSidebar h2 {
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+  color: #fff;
 }
 
-#channelList li {
-  padding: 10px;
-  margin-bottom: 5px;
+/* Buttons for channels */
+.channel-button {
+  padding: 10px 15px;
+  text-align: left;
+  font-size: 16px;
   background: #202225;
+  border: none;
   border-radius: 4px;
+  color: #fff;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: background 0.3s ease, transform 0.1s ease;
 }
 
-#channelList li:hover,
-#channelList li.active {
+.channel-button:hover {
+  background: #5865F2;
+}
+
+.channel-button.active {
   background: #5865F2;
   color: #fff;
 }
@@ -59,26 +71,18 @@ html, body {
   flex-direction: column;
   margin: 20px;
   background: #2F3136;
-  border: 1px solid #202225;
   border-radius: 4px;
-  overflow: hidden;
 }
 
-/* Chat Box */
+/* Chat box styling */
 #chatBox {
   flex: 1;
   padding: 15px;
-  height: 60vh; /* Ensures fixed height */
   overflow-y: auto;
   border-bottom: 1px solid #202225;
 }
 
-/* Auto-scroll fix: make sure new messages are visible */
-#chatBox p {
-  margin-bottom: 10px;
-}
-
-/* Input area for messages */
+/* Input area */
 .chat-input-container {
   display: flex;
   padding: 15px;
@@ -116,18 +120,12 @@ button:hover {
   .container {
     flex-direction: column;
   }
-  #channelList {
+  #channelSidebar {
     width: 100%;
-    display: flex;
-    overflow-x: auto;
-    padding: 10px;
-  }
-  #channelList ul {
-    display: flex;
-    width: 100%;
-    gap: 10px;
+    border-right: none;
+    border-bottom: 1px solid #202225;
   }
   #chatSection {
-    margin: 10px;
+    margin: 10px 0;
   }
 }
