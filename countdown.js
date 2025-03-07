@@ -1,5 +1,5 @@
 // Countdown start (2000 years from now)
-let yearsLeft = 2000;
+let yearsLeft = 2000000000000;
 
 // Function to update the countdown
 function updateCountdown() {
@@ -7,7 +7,7 @@ function updateCountdown() {
 
   // Update the message
   if (yearsLeft > 0) {
-    countdownElement.textContent = `${yearsLeft} years until Fruit Bat comes out`;
+    countdownElement.textContent = `${yearsLeft} Seconds until Fruit Bat comes out`;
     yearsLeft--;
   } else {
     countdownElement.textContent = "Fruit Bat is here! 🦇";
