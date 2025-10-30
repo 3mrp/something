@@ -13,11 +13,11 @@ const packingEfficiency = document.getElementById('packingEfficiency');
 const shapesPlaced = document.getElementById('shapesPlaced');
 
 // Configuration constants
-const MIN_SHAPE_SIZE = 5;
+const MIN_SHAPE_SIZE = 15;
 const MAX_SHAPE_SIZE = 15;
 const SIZE_SCALE_FACTOR = 4.0;
 const COLLISION_MARGIN = 2.2;
-const ATTEMPTS_PER_SHAPE = 100;
+const ATTEMPTS_PER_SHAPE = 1000;
 
 // State
 let packedShapes = [];
