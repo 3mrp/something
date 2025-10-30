@@ -12,6 +12,13 @@ const resetBtn = document.getElementById('resetBtn');
 const packingEfficiency = document.getElementById('packingEfficiency');
 const shapesPlaced = document.getElementById('shapesPlaced');
 
+// Configuration constants
+const MIN_SHAPE_SIZE = 8;
+const MAX_SHAPE_SIZE = 30;
+const SIZE_SCALE_FACTOR = 2.5;
+const COLLISION_MARGIN = 2.2;
+const ATTEMPTS_PER_SHAPE = 100;
+
 // State
 let packedShapes = [];
 let containerSize = 500;
@@ -89,7 +96,7 @@ function isInsideContainer(containerShape, x, y, shapeSize) {
     
     // Check if point is inside triangle with margin
     const relY = (y - topY) / height;
-    const maxX = (containerSize / 2) * relY;
+    const maxX = (containerSize / 2) * (1 - relY);
     return Math.abs(x - centerX) + shapeSize <= maxX;
   }
   return false;
@@ -98,7 +105,7 @@ function isInsideContainer(containerShape, x, y, shapeSize) {
 // Check if two shapes overlap
 function shapesOverlap(x1, y1, x2, y2, size) {
   const distance = Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
-  return distance < size * 2.2; // Add small margin
+  return distance < size * COLLISION_MARGIN;
 }
 
 // Generate random color
@@ -120,11 +127,11 @@ function packShapes() {
   packedShapes = [];
   
   // Calculate shape size based on count
-  const baseSize = Math.max(8, Math.min(30, containerSize / (Math.sqrt(count) * 2.5)));
+  const baseSize = Math.max(MIN_SHAPE_SIZE, Math.min(MAX_SHAPE_SIZE, containerSize / (Math.sqrt(count) * SIZE_SCALE_FACTOR)));
   
   // Try to place each shape
   let attempts = 0;
-  const maxAttempts = count * 100;
+  const maxAttempts = count * ATTEMPTS_PER_SHAPE;
   
   while (packedShapes.length < count && attempts < maxAttempts) {
     attempts++;
