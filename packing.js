@@ -21,7 +21,7 @@ const ATTEMPTS_PER_SHAPE = 100;
 
 // State
 let packedShapes = [];
-let containerSize = 300;
+let containerSize = 100;
 let centerX = canvas.width / 2;
 let centerY = canvas.height / 2;
 
