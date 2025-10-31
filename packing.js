@@ -17,7 +17,7 @@ const MIN_SHAPE_SIZE = 5;
 const MAX_SHAPE_SIZE = 30;
 const SIZE_SCALE_FACTOR = 2.5;
 const COLLISION_MARGIN = 1.1;
-const ATTEMPTS_PER_SHAPE = 150;
+const ATTEMPTS_PER_SHAPE = 1000;
 
 // State
 let packedShapes = [];
@@ -418,12 +418,15 @@ function packShapes() {
     }
   }
   
-  // Second pass: random placement for remaining shapes
-  while (packedShapes.length < count && totalAttempts < maxTotalAttempts) {
+  // Second pass: random placement for remaining shapes with adaptive strategy
+  let consecutiveFailures = 0;
+  const maxConsecutiveFailures = 5000;
+  
+  while (packedShapes.length < count && totalAttempts < maxTotalAttempts && consecutiveFailures < maxConsecutiveFailures) {
     totalAttempts++;
     
-    // Generate random position within bounds with better margins
-    const margin = baseSize * 1.5;
+    // Use a tighter margin for better space utilization
+    const margin = baseSize * 1.2;
     const x = centerX - containerSize / 2 + margin + Math.random() * (containerSize - margin * 2);
     const y = centerY - containerSize / 2 + margin + Math.random() * (containerSize - margin * 2);
     
@@ -437,6 +440,7 @@ function packShapes() {
     
     // Check if position is valid
     if (!isInsideContainer(containerShape, x, y, baseSize, packedShapeType, rotation)) {
+      consecutiveFailures++;
       continue;
     }
     
@@ -456,6 +460,59 @@ function packShapes() {
         rotation: rotation,
         color: randomColor()
       });
+      consecutiveFailures = 0; // Reset on success
+    } else {
+      consecutiveFailures++;
+    }
+  }
+  
+  // Third pass: focused search in gaps with reduced margins
+  if (packedShapes.length < count) {
+    consecutiveFailures = 0;
+    const searchAttempts = Math.min(count * 500, maxTotalAttempts - totalAttempts);
+    
+    for (let i = 0; i < searchAttempts && packedShapes.length < count && consecutiveFailures < maxConsecutiveFailures; i++) {
+      totalAttempts++;
+      
+      // Use even tighter margins for gap filling
+      const margin = baseSize * 1.0;
+      const x = centerX - containerSize / 2 + margin + Math.random() * (containerSize - margin * 2);
+      const y = centerY - containerSize / 2 + margin + Math.random() * (containerSize - margin * 2);
+      
+      // Try random rotation
+      let rotation = 0;
+      if (packedShapeType === 'square') {
+        rotation = Math.random() * Math.PI / 4;
+      } else if (packedShapeType === 'triangle') {
+        rotation = Math.floor(Math.random() * 3) * Math.PI * 2 / 3;
+      }
+      
+      // Check if position is valid
+      if (!isInsideContainer(containerShape, x, y, baseSize, packedShapeType, rotation)) {
+        consecutiveFailures++;
+        continue;
+      }
+      
+      // Check for overlaps with existing shapes
+      let overlaps = false;
+      for (const shape of packedShapes) {
+        if (shapesOverlap(packedShapeType, x, y, rotation, shape.x, shape.y, shape.rotation, baseSize)) {
+          overlaps = true;
+          break;
+        }
+      }
+      
+      if (!overlaps) {
+        packedShapes.push({
+          x, y,
+          size: baseSize,
+          rotation: rotation,
+          color: randomColor()
+        });
+        consecutiveFailures = 0;
+      } else {
+        consecutiveFailures++;
+      }
     }
   }
   
