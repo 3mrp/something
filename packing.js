@@ -153,8 +153,8 @@ function isCircleInsideContainer(containerShape, x, y, radius) {
     return distance + radius <= containerSize / 2;
   } else if (containerShape === 'triangle') {
     const height = (Math.sqrt(3) / 2) * containerSize;
-    const topY = centerY - height * 0.6;
-    const bottomY = centerY + height * 0.4;
+    const topY = centerY - height * 0.4;
+    const bottomY = centerY + height * 0.6;
     
     // Check multiple points on the circle's perimeter
     const numPoints = 16;
@@ -195,8 +195,8 @@ function isSquareInsideContainer(containerShape, x, y, size) {
     return true;
   } else if (containerShape === 'triangle') {
     const height = (Math.sqrt(3) / 2) * containerSize;
-    const topY = centerY - height * 0.6;
-    const bottomY = centerY + height * 0.4;
+    const topY = centerY - height * 0.4;
+    const bottomY = centerY + height * 0.6;
     
     // Check all 4 corners
     const corners = [
@@ -384,9 +384,9 @@ function packShapes() {
       // Try random rotation for non-circle shapes
       let rotation = 0;
       if (packedShapeType === 'square') {
-        rotation = Math.random() * Math.PI / 2; // 0 to 90 degrees
+        rotation = Math.random() * Math.PI / 4; // 0 to 45 degrees (4-fold symmetry)
       } else if (packedShapeType === 'triangle') {
-        rotation = Math.random() * Math.PI * 2 / 3; // 0, 120, or 240 degrees
+        rotation = Math.floor(Math.random() * 3) * Math.PI * 2 / 3; // 0, 120, or 240 degrees (3-fold symmetry)
       }
       
       // Check if position is valid
@@ -426,9 +426,9 @@ function packShapes() {
     // Try random rotation
     let rotation = 0;
     if (packedShapeType === 'square') {
-      rotation = Math.random() * Math.PI / 2;
+      rotation = Math.random() * Math.PI / 4; // 0 to 45 degrees (4-fold symmetry)
     } else if (packedShapeType === 'triangle') {
-      rotation = Math.random() * Math.PI * 2 / 3;
+      rotation = Math.floor(Math.random() * 3) * Math.PI * 2 / 3; // 0, 120, or 240 degrees (3-fold symmetry)
     }
     
     // Check if position is valid
