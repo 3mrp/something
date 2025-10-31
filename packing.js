@@ -15,9 +15,11 @@ const shapesPlaced = document.getElementById('shapesPlaced');
 // Configuration constants
 const MIN_SHAPE_SIZE = 5;
 const MAX_SHAPE_SIZE = 30;
-const SIZE_SCALE_FACTOR = 2.5;
-const COLLISION_MARGIN = 1.1;
-const ATTEMPTS_PER_SHAPE = 150;
+const SIZE_SCALE_FACTOR = 3.0; // Increased from 2.5 to make shapes smaller and fit more
+const COLLISION_MARGIN = 1.02; // Small margin to ensure no overlaps (2% gap)
+const ATTEMPTS_PER_SHAPE = 2000; // Increased attempts
+const MAX_CONSECUTIVE_FAILURES = 10000; // Increased tolerance
+const SEARCH_ATTEMPTS_MULTIPLIER = 1000; // Increased search attempts
 
 // State
 let packedShapes = [];
@@ -272,10 +274,10 @@ function isInsideContainer(containerShape, x, y, shapeSize, shapeType, rotation 
   return false;
 }
 
-// Check if two circles overlap
+// Check if two circles overlap (with collision margin to prevent overlaps)
 function circlesOverlap(x1, y1, r1, x2, y2, r2) {
   const distance = Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
-  return distance < r1 + r2;
+  return distance < (r1 + r2) * COLLISION_MARGIN;
 }
 
 // Check if circle and square overlap
@@ -288,7 +290,7 @@ function circleSquareOverlap(cx, cy, r, sx, sy, ss) {
   const distY = cy - closestY;
   const distance = Math.sqrt(distX * distX + distY * distY);
   
-  return distance < r;
+  return distance < r * COLLISION_MARGIN;
 }
 
 // Check if two squares overlap
@@ -353,6 +355,80 @@ function randomColor() {
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
+// Helper function to attempt placing a shape at random position
+function tryPlaceShapeRandomly(containerShape, packedShapeType, baseSize, margin) {
+  // Generate random position within bounds
+  const x = centerX - containerSize / 2 + margin + Math.random() * (containerSize - margin * 2);
+  const y = centerY - containerSize / 2 + margin + Math.random() * (containerSize - margin * 2);
+  
+  // Try random rotation
+  let rotation = 0;
+  if (packedShapeType === 'square') {
+    rotation = Math.random() * Math.PI / 4; // 0 to 45 degrees (4-fold symmetry)
+  } else if (packedShapeType === 'triangle') {
+    rotation = Math.floor(Math.random() * 3) * Math.PI * 2 / 3; // 0, 120, or 240 degrees (3-fold symmetry)
+  }
+  
+  // Check if position is valid
+  if (!isInsideContainer(containerShape, x, y, baseSize, packedShapeType, rotation)) {
+    return null;
+  }
+  
+  // Check for overlaps with existing shapes
+  for (const shape of packedShapes) {
+    if (shapesOverlap(packedShapeType, x, y, rotation, shape.x, shape.y, shape.rotation, baseSize)) {
+      return null;
+    }
+  }
+  
+  return { x, y, size: baseSize, rotation, color: randomColor() };
+}
+
+// Helper function to try repositioning a clump of shapes to create more space
+function tryRepositionClump(containerShape, packedShapeType, baseSize, clumpSize) {
+  if (packedShapes.length < clumpSize) return false;
+  
+  // Randomly select a clump of shapes to move
+  const startIdx = Math.floor(Math.random() * (packedShapes.length - clumpSize + 1));
+  const clump = packedShapes.slice(startIdx, startIdx + clumpSize);
+  
+  // Calculate centroid of the clump
+  const centroidX = clump.reduce((sum, s) => sum + s.x, 0) / clump.length;
+  const centroidY = clump.reduce((sum, s) => sum + s.y, 0) / clump.length;
+  
+  // Try a random offset
+  const offsetX = (Math.random() - 0.5) * baseSize * 3;
+  const offsetY = (Math.random() - 0.5) * baseSize * 3;
+  
+  // Check if all shapes in clump can be moved
+  const otherShapes = packedShapes.filter((s, i) => i < startIdx || i >= startIdx + clumpSize);
+  
+  for (const shape of clump) {
+    const newX = shape.x + offsetX;
+    const newY = shape.y + offsetY;
+    
+    // Check if new position is inside container
+    if (!isInsideContainer(containerShape, newX, newY, baseSize, packedShapeType, shape.rotation)) {
+      return false;
+    }
+    
+    // Check for overlaps with other shapes
+    for (const other of otherShapes) {
+      if (shapesOverlap(packedShapeType, newX, newY, shape.rotation, other.x, other.y, other.rotation, baseSize)) {
+        return false;
+      }
+    }
+  }
+  
+  // All checks passed, apply the move
+  for (const shape of clump) {
+    shape.x += offsetX;
+    shape.y += offsetY;
+  }
+  
+  return true;
+}
+
 // Pack shapes using grid-based placement with random jitter and rotation
 function packShapes() {
   const containerShape = containerShapeSelect.value;
@@ -372,9 +448,9 @@ function packShapes() {
   let totalAttempts = 0;
   const maxTotalAttempts = count * ATTEMPTS_PER_SHAPE;
   
-  // First pass: grid-based placement with jitter
-  for (let row = 0; row < gridSize && packedShapes.length < count && totalAttempts < maxTotalAttempts; row++) {
-    for (let col = 0; col < gridSize && packedShapes.length < count && totalAttempts < maxTotalAttempts; col++) {
+  // First pass: grid-based placement with jitter - continue beyond target count
+  for (let row = 0; row < gridSize && totalAttempts < maxTotalAttempts; row++) {
+    for (let col = 0; col < gridSize && totalAttempts < maxTotalAttempts; col++) {
       totalAttempts++;
       
       // Calculate grid position with random jitter
@@ -418,44 +494,76 @@ function packShapes() {
     }
   }
   
-  // Second pass: random placement for remaining shapes
-  while (packedShapes.length < count && totalAttempts < maxTotalAttempts) {
+  // Second pass: random placement with adaptive strategy - pack beyond target
+  let consecutiveFailures = 0;
+  
+  while (totalAttempts < maxTotalAttempts && consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
     totalAttempts++;
     
-    // Generate random position within bounds with better margins
-    const margin = baseSize * 1.5;
-    const x = centerX - containerSize / 2 + margin + Math.random() * (containerSize - margin * 2);
-    const y = centerY - containerSize / 2 + margin + Math.random() * (containerSize - margin * 2);
+    // Use a tighter margin for better space utilization
+    const margin = baseSize * 1.2;
+    const placedShape = tryPlaceShapeRandomly(containerShape, packedShapeType, baseSize, margin);
     
-    // Try random rotation
-    let rotation = 0;
-    if (packedShapeType === 'square') {
-      rotation = Math.random() * Math.PI / 4; // 0 to 45 degrees (4-fold symmetry)
-    } else if (packedShapeType === 'triangle') {
-      rotation = Math.floor(Math.random() * 3) * Math.PI * 2 / 3; // 0, 120, or 240 degrees (3-fold symmetry)
+    if (placedShape) {
+      packedShapes.push(placedShape);
+      consecutiveFailures = 0; // Reset on success
+    } else {
+      consecutiveFailures++;
     }
+  }
+  
+  // Third pass: focused search in gaps with reduced margins
+  consecutiveFailures = 0;
+  const searchAttempts = Math.min(count * SEARCH_ATTEMPTS_MULTIPLIER, maxTotalAttempts - totalAttempts);
+  
+  for (let i = 0; i < searchAttempts && consecutiveFailures < MAX_CONSECUTIVE_FAILURES; i++) {
+    totalAttempts++;
     
-    // Check if position is valid
-    if (!isInsideContainer(containerShape, x, y, baseSize, packedShapeType, rotation)) {
-      continue;
+    // Use even tighter margins for gap filling
+    const margin = baseSize * 1.0;
+    const placedShape = tryPlaceShapeRandomly(containerShape, packedShapeType, baseSize, margin);
+    
+    if (placedShape) {
+      packedShapes.push(placedShape);
+      consecutiveFailures = 0;
+    } else {
+      consecutiveFailures++;
     }
+  }
+  
+  // Clump repositioning pass: try moving groups of shapes to create better packing
+  // Attempt multiple times with different clump sizes
+  const clumpAttempts = 100;
+  const clumpSizes = [3, 5, 7, 10];
+  
+  for (let attempt = 0; attempt < clumpAttempts; attempt++) {
+    const clumpSize = clumpSizes[Math.floor(Math.random() * clumpSizes.length)];
+    tryRepositionClump(containerShape, packedShapeType, baseSize, clumpSize);
     
-    // Check for overlaps with existing shapes
-    let overlaps = false;
-    for (const shape of packedShapes) {
-      if (shapesOverlap(packedShapeType, x, y, rotation, shape.x, shape.y, shape.rotation, baseSize)) {
-        overlaps = true;
-        break;
+    // Try to fill newly created gaps
+    for (let j = 0; j < 5; j++) {
+      const margin = baseSize * 0.8;
+      const placedShape = tryPlaceShapeRandomly(containerShape, packedShapeType, baseSize, margin);
+      if (placedShape) {
+        packedShapes.push(placedShape);
       }
     }
+  }
+  
+  // Final pass: continue packing beyond target count to maximize space usage
+  consecutiveFailures = 0;
+  const maxExtraAttempts = count * SEARCH_ATTEMPTS_MULTIPLIER * 2;
+  
+  for (let i = 0; i < maxExtraAttempts && consecutiveFailures < MAX_CONSECUTIVE_FAILURES; i++) {
+    // Use minimal margins to maximize packing
+    const margin = baseSize * 0.8;
+    const placedShape = tryPlaceShapeRandomly(containerShape, packedShapeType, baseSize, margin);
     
-    if (!overlaps) {
-      packedShapes.push({
-        x, y,
-        size: baseSize,
-        rotation: rotation,
-        color: randomColor()
-      });
+    if (placedShape) {
+      packedShapes.push(placedShape);
+      consecutiveFailures = 0;
+    } else {
+      consecutiveFailures++;
     }
   }
   
@@ -463,7 +571,9 @@ function packShapes() {
   redraw();
   
   // Update info
-  const efficiency = ((packedShapes.length / count) * 100).toFixed(1);
+  const efficiency = packedShapes.length >= count ? 
+    ((packedShapes.length / count) * 100).toFixed(1) : 
+    ((packedShapes.length / count) * 100).toFixed(1);
   packingEfficiency.textContent = `Efficiency: ${efficiency}%`;
   shapesPlaced.textContent = `Shapes placed: ${packedShapes.length} / ${count}`;
 }
