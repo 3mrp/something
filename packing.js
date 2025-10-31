@@ -323,18 +323,22 @@ function trianglesOverlap(x1, y1, s1, x2, y2, s2) {
 }
 
 // Check if two shapes overlap (dispatch to specific functions, accounting for rotation)
-function shapesOverlap(shapeType, x1, y1, r1, x2, y2, r2, size) {
+// Uses conservative bounding circle approximations for rotated shapes
+function shapesOverlap(shapeType, x1, y1, rotation1, x2, y2, rotation2, size) {
   if (shapeType === 'circle') {
     return circlesOverlap(x1, y1, size, x2, y2, size);
   } else if (shapeType === 'square') {
     // Use conservative bounding circle check for rotated squares
+    // Factor 0.7 ≈ 1/√2 accounts for square inscribed in circle
     const diagonal = size * Math.sqrt(2);
-    return circlesOverlap(x1, y1, diagonal * 0.7, x2, y2, diagonal * 0.7);
+    const boundingRadius = diagonal * 0.7;
+    return circlesOverlap(x1, y1, boundingRadius, x2, y2, boundingRadius);
   } else if (shapeType === 'triangle') {
     // Use conservative bounding circle check for rotated triangles
+    // Factor 0.6 is the distance from centroid to vertex for equilateral triangle
     const height = (Math.sqrt(3) / 2) * size * 2;
-    const radius = Math.max(size, height * 0.6);
-    return circlesOverlap(x1, y1, radius, x2, y2, radius);
+    const boundingRadius = Math.max(size, height * 0.6);
+    return circlesOverlap(x1, y1, boundingRadius, x2, y2, boundingRadius);
   }
   return false;
 }
