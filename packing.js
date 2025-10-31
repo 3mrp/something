@@ -17,9 +17,9 @@ const MIN_SHAPE_SIZE = 15;
 const MAX_SHAPE_SIZE = 30;
 const SIZE_SCALE_FACTOR = 3.0; // Increased from 2.5 to make shapes smaller and fit more
 const COLLISION_MARGIN = 1.02; // Small margin to ensure no overlaps (2% gap)
-const ATTEMPTS_PER_SHAPE = 200000; // Increased attempts
-const MAX_CONSECUTIVE_FAILURES = 1000000; // Increased tolerance
-const SEARCH_ATTEMPTS_MULTIPLIER = 100000; // Increased search attempts
+const ATTEMPTS_PER_SHAPE = 20000000000; // Increased attempts
+const MAX_CONSECUTIVE_FAILURES = 100000000000; // Increased tolerance
+const SEARCH_ATTEMPTS_MULTIPLIER = 1000000000; // Increased search attempts
 
 // State
 let packedShapes = [];
