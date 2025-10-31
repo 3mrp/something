@@ -13,15 +13,15 @@ const packingEfficiency = document.getElementById('packingEfficiency');
 const shapesPlaced = document.getElementById('shapesPlaced');
 
 // Configuration constants
-const MIN_SHAPE_SIZE = 15;
-const MAX_SHAPE_SIZE = 15;
-const SIZE_SCALE_FACTOR = 4.0;
-const COLLISION_MARGIN = 2.2;
-const ATTEMPTS_PER_SHAPE = 100000;
+const MIN_SHAPE_SIZE = 5;
+const MAX_SHAPE_SIZE = 30;
+const SIZE_SCALE_FACTOR = 2.5;
+const COLLISION_MARGIN = 1.1;
+const ATTEMPTS_PER_SHAPE = 150;
 
 // State
 let packedShapes = [];
-let containerSize = 60;
+let containerSize = 280;
 let centerX = canvas.width / 2;
 let centerY = canvas.height / 2;
 
@@ -44,9 +44,10 @@ function drawContainer(shape) {
     ctx.arc(centerX, centerY, containerSize / 2, 0, Math.PI * 2);
   } else if (shape === 'triangle') {
     const height = (Math.sqrt(3) / 2) * containerSize;
-    ctx.moveTo(centerX, centerY - height * 0.6);
-    ctx.lineTo(centerX - containerSize / 2, centerY + height * 0.4);
-    ctx.lineTo(centerX + containerSize / 2, centerY + height * 0.4);
+    // Triangle pointing down
+    ctx.moveTo(centerX, centerY + height * 0.6);
+    ctx.lineTo(centerX - containerSize / 2, centerY - height * 0.4);
+    ctx.lineTo(centerX + containerSize / 2, centerY - height * 0.4);
     ctx.closePath();
   }
   ctx.fill();
@@ -54,29 +55,35 @@ function drawContainer(shape) {
 }
 
 // Draw a single packed shape
-function drawPackedShape(shape, x, y, size, color) {
+function drawPackedShape(shape, x, y, size, color, rotation = 0) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  
   ctx.fillStyle = color;
   ctx.strokeStyle = '#333';
   ctx.lineWidth = 1;
 
   ctx.beginPath();
   if (shape === 'circle') {
-    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.arc(0, 0, size, 0, Math.PI * 2);
   } else if (shape === 'square') {
-    ctx.rect(x - size, y - size, size * 2, size * 2);
+    ctx.rect(-size, -size, size * 2, size * 2);
   } else if (shape === 'triangle') {
     const height = (Math.sqrt(3) / 2) * size * 2;
-    ctx.moveTo(x, y - height * 0.6);
-    ctx.lineTo(x - size, y + height * 0.4);
-    ctx.lineTo(x + size, y + height * 0.4);
+    // Triangle pointing down
+    ctx.moveTo(0, height * 0.6);
+    ctx.lineTo(-size, -height * 0.4);
+    ctx.lineTo(size, -height * 0.4);
     ctx.closePath();
   }
   ctx.fill();
   ctx.stroke();
+  ctx.restore();
 }
 
-// Get bounding box for a shape
-function getShapeBounds(shapeType, x, y, size) {
+// Get bounding box for a shape (with rotation support)
+function getShapeBounds(shapeType, x, y, size, rotation = 0) {
   if (shapeType === 'circle') {
     return {
       minX: x - size,
@@ -87,26 +94,50 @@ function getShapeBounds(shapeType, x, y, size) {
       cx: x, cy: y, r: size
     };
   } else if (shapeType === 'square') {
+    // For rotated squares, use conservative bounding circle
+    const diagonal = size * Math.sqrt(2);
     return {
-      minX: x - size,
-      maxX: x + size,
-      minY: y - size,
-      maxY: y + size,
-      type: 'square'
+      minX: x - diagonal,
+      maxX: x + diagonal,
+      minY: y - diagonal,
+      maxY: y + diagonal,
+      type: 'square',
+      cx: x, cy: y, size: size, rotation: rotation
     };
   } else if (shapeType === 'triangle') {
     const height = (Math.sqrt(3) / 2) * size * 2;
-    const top = y - height * 0.6;
-    const bottom = y + height * 0.4;
+    // Get rotated vertices
+    const vertices = getTriangleVertices(x, y, size, rotation);
+    const xs = vertices.map(v => v.x);
+    const ys = vertices.map(v => v.y);
     return {
-      minX: x - size,
-      maxX: x + size,
-      minY: top,
-      maxY: bottom,
+      minX: Math.min(...xs),
+      maxX: Math.max(...xs),
+      minY: Math.min(...ys),
+      maxY: Math.max(...ys),
       type: 'triangle',
-      cx: x, cy: y, size: size, h: height
+      cx: x, cy: y, size: size, h: height, rotation: rotation
     };
   }
+}
+
+// Get triangle vertices accounting for rotation
+function getTriangleVertices(x, y, size, rotation = 0) {
+  const height = (Math.sqrt(3) / 2) * size * 2;
+  // Base vertices (pointing down)
+  const baseVertices = [
+    {x: 0, y: height * 0.6},
+    {x: -size, y: -height * 0.4},
+    {x: size, y: -height * 0.4}
+  ];
+  
+  // Apply rotation and translation
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  return baseVertices.map(v => ({
+    x: x + v.x * cos - v.y * sin,
+    y: y + v.x * sin + v.y * cos
+  }));
 }
 
 // Check if a circle is fully inside the container
@@ -122,8 +153,8 @@ function isCircleInsideContainer(containerShape, x, y, radius) {
     return distance + radius <= containerSize / 2;
   } else if (containerShape === 'triangle') {
     const height = (Math.sqrt(3) / 2) * containerSize;
-    const topY = centerY - height * 0.6;
-    const bottomY = centerY + height * 0.4;
+    const topY = centerY - height * 0.4;
+    const bottomY = centerY + height * 0.6;
     
     // Check multiple points on the circle's perimeter
     const numPoints = 16;
@@ -164,8 +195,8 @@ function isSquareInsideContainer(containerShape, x, y, size) {
     return true;
   } else if (containerShape === 'triangle') {
     const height = (Math.sqrt(3) / 2) * containerSize;
-    const topY = centerY - height * 0.6;
-    const bottomY = centerY + height * 0.4;
+    const topY = centerY - height * 0.4;
+    const bottomY = centerY + height * 0.6;
     
     // Check all 4 corners
     const corners = [
@@ -185,13 +216,8 @@ function isSquareInsideContainer(containerShape, x, y, size) {
 }
 
 // Check if a triangle is fully inside the container
-function isTriangleInsideContainer(containerShape, x, y, size) {
-  const height = (Math.sqrt(3) / 2) * size * 2;
-  const vertices = [
-    {x: x, y: y - height * 0.6},
-    {x: x - size, y: y + height * 0.4},
-    {x: x + size, y: y + height * 0.4}
-  ];
+function isTriangleInsideContainer(containerShape, x, y, size, rotation = 0) {
+  const vertices = getTriangleVertices(x, y, size, rotation);
   
   if (containerShape === 'square') {
     const halfSize = containerSize / 2;
@@ -210,8 +236,8 @@ function isTriangleInsideContainer(containerShape, x, y, size) {
     return true;
   } else if (containerShape === 'triangle') {
     const height = (Math.sqrt(3) / 2) * containerSize;
-    const topY = centerY - height * 0.6;
-    const bottomY = centerY + height * 0.4;
+    const topY = centerY - height * 0.4;
+    const bottomY = centerY + height * 0.6;
     
     for (const v of vertices) {
       if (!isPointInTriangle(v.x, v.y, topY, bottomY)) {
@@ -223,24 +249,25 @@ function isTriangleInsideContainer(containerShape, x, y, size) {
   return false;
 }
 
-// Helper: check if point is in triangle container
+// Helper: check if point is in triangle container (pointing down)
 function isPointInTriangle(px, py, topY, bottomY) {
   if (py < topY || py > bottomY) return false;
   
   const height = bottomY - topY;
   const relY = (py - topY) / height;
-  const maxX = (containerSize / 2) * (1 - relY);
+  // For downward pointing triangle, width increases as we go down
+  const maxX = (containerSize / 2) * relY;
   return Math.abs(px - centerX) <= maxX;
 }
 
 // Check if a point is inside the container (dispatch to specific functions)
-function isInsideContainer(containerShape, x, y, shapeSize, shapeType) {
+function isInsideContainer(containerShape, x, y, shapeSize, shapeType, rotation = 0) {
   if (shapeType === 'circle') {
     return isCircleInsideContainer(containerShape, x, y, shapeSize);
   } else if (shapeType === 'square') {
     return isSquareInsideContainer(containerShape, x, y, shapeSize);
   } else if (shapeType === 'triangle') {
-    return isTriangleInsideContainer(containerShape, x, y, shapeSize);
+    return isTriangleInsideContainer(containerShape, x, y, shapeSize, rotation);
   }
   return false;
 }
@@ -295,14 +322,23 @@ function trianglesOverlap(x1, y1, s1, x2, y2, s2) {
            y1 + h1 * 0.4 < y2 - h2 * 0.6 || y1 - h1 * 0.6 > y2 + h2 * 0.4);
 }
 
-// Check if two shapes overlap (dispatch to specific functions)
-function shapesOverlap(shapeType, x1, y1, x2, y2, size) {
+// Check if two shapes overlap (dispatch to specific functions, accounting for rotation)
+// Uses conservative bounding circle approximations for rotated shapes
+function shapesOverlap(shapeType, x1, y1, rotation1, x2, y2, rotation2, size) {
   if (shapeType === 'circle') {
     return circlesOverlap(x1, y1, size, x2, y2, size);
   } else if (shapeType === 'square') {
-    return squaresOverlap(x1, y1, size, x2, y2, size);
+    // Use conservative bounding circle check for rotated squares
+    // Factor 0.7 ≈ 1/√2 accounts for square inscribed in circle
+    const diagonal = size * Math.sqrt(2);
+    const boundingRadius = diagonal * 0.7;
+    return circlesOverlap(x1, y1, boundingRadius, x2, y2, boundingRadius);
   } else if (shapeType === 'triangle') {
-    return trianglesOverlap(x1, y1, size, x2, y2, size);
+    // Use conservative bounding circle check for rotated triangles
+    // Factor 0.6 is the distance from centroid to vertex for equilateral triangle
+    const height = (Math.sqrt(3) / 2) * size * 2;
+    const boundingRadius = Math.max(size, height * 0.6);
+    return circlesOverlap(x1, y1, boundingRadius, x2, y2, boundingRadius);
   }
   return false;
 }
@@ -317,7 +353,7 @@ function randomColor() {
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
-// Pack shapes using simple random placement with collision detection
+// Pack shapes using grid-based placement with random jitter and rotation
 function packShapes() {
   const containerShape = containerShapeSelect.value;
   const packedShapeType = packedShapeSelect.value;
@@ -325,30 +361,89 @@ function packShapes() {
   
   packedShapes = [];
   
-  // Calculate shape size based on count
+  // Calculate shape size based on count with better scaling
   const baseSize = Math.max(MIN_SHAPE_SIZE, Math.min(MAX_SHAPE_SIZE, containerSize / (Math.sqrt(count) * SIZE_SCALE_FACTOR)));
   
-  // Try to place each shape
-  let attempts = 0;
-  const maxAttempts = count * ATTEMPTS_PER_SHAPE;
+  // Use grid-based approach for better packing
+  const gridSize = Math.ceil(Math.sqrt(count)) * 2;
+  const cellSize = containerSize / gridSize;
   
-  while (packedShapes.length < count && attempts < maxAttempts) {
-    attempts++;
+  // Track attempts
+  let totalAttempts = 0;
+  const maxTotalAttempts = count * ATTEMPTS_PER_SHAPE;
+  
+  // First pass: grid-based placement with jitter
+  for (let row = 0; row < gridSize && packedShapes.length < count && totalAttempts < maxTotalAttempts; row++) {
+    for (let col = 0; col < gridSize && packedShapes.length < count && totalAttempts < maxTotalAttempts; col++) {
+      totalAttempts++;
+      
+      // Calculate grid position with random jitter
+      const gridX = centerX - containerSize / 2 + (col + 0.5) * cellSize;
+      const gridY = centerY - containerSize / 2 + (row + 0.5) * cellSize;
+      const jitterX = (Math.random() - 0.5) * cellSize * 0.5;
+      const jitterY = (Math.random() - 0.5) * cellSize * 0.5;
+      const x = gridX + jitterX;
+      const y = gridY + jitterY;
+      
+      // Try random rotation for non-circle shapes
+      let rotation = 0;
+      if (packedShapeType === 'square') {
+        rotation = Math.random() * Math.PI / 4; // 0 to 45 degrees (4-fold symmetry)
+      } else if (packedShapeType === 'triangle') {
+        rotation = Math.floor(Math.random() * 3) * Math.PI * 2 / 3; // 0, 120, or 240 degrees (3-fold symmetry)
+      }
+      
+      // Check if position is valid
+      if (!isInsideContainer(containerShape, x, y, baseSize, packedShapeType, rotation)) {
+        continue;
+      }
+      
+      // Check for overlaps with existing shapes
+      let overlaps = false;
+      for (const shape of packedShapes) {
+        if (shapesOverlap(packedShapeType, x, y, rotation, shape.x, shape.y, shape.rotation, baseSize)) {
+          overlaps = true;
+          break;
+        }
+      }
+      
+      if (!overlaps) {
+        packedShapes.push({
+          x, y,
+          size: baseSize,
+          rotation: rotation,
+          color: randomColor()
+        });
+      }
+    }
+  }
+  
+  // Second pass: random placement for remaining shapes
+  while (packedShapes.length < count && totalAttempts < maxTotalAttempts) {
+    totalAttempts++;
     
-    // Generate random position within bounds
-    const margin = baseSize * 2;
+    // Generate random position within bounds with better margins
+    const margin = baseSize * 1.5;
     const x = centerX - containerSize / 2 + margin + Math.random() * (containerSize - margin * 2);
     const y = centerY - containerSize / 2 + margin + Math.random() * (containerSize - margin * 2);
     
+    // Try random rotation
+    let rotation = 0;
+    if (packedShapeType === 'square') {
+      rotation = Math.random() * Math.PI / 4; // 0 to 45 degrees (4-fold symmetry)
+    } else if (packedShapeType === 'triangle') {
+      rotation = Math.floor(Math.random() * 3) * Math.PI * 2 / 3; // 0, 120, or 240 degrees (3-fold symmetry)
+    }
+    
     // Check if position is valid
-    if (!isInsideContainer(containerShape, x, y, baseSize, packedShapeType)) {
+    if (!isInsideContainer(containerShape, x, y, baseSize, packedShapeType, rotation)) {
       continue;
     }
     
     // Check for overlaps with existing shapes
     let overlaps = false;
     for (const shape of packedShapes) {
-      if (shapesOverlap(packedShapeType, x, y, shape.x, shape.y, baseSize)) {
+      if (shapesOverlap(packedShapeType, x, y, rotation, shape.x, shape.y, shape.rotation, baseSize)) {
         overlaps = true;
         break;
       }
@@ -358,6 +453,7 @@ function packShapes() {
       packedShapes.push({
         x, y,
         size: baseSize,
+        rotation: rotation,
         color: randomColor()
       });
     }
@@ -382,7 +478,7 @@ function redraw() {
   // Draw packed shapes
   const packedShapeType = packedShapeSelect.value;
   for (const shape of packedShapes) {
-    drawPackedShape(packedShapeType, shape.x, shape.y, shape.size, shape.color);
+    drawPackedShape(packedShapeType, shape.x, shape.y, shape.size, shape.color, shape.rotation || 0);
   }
 }
 
